@@ -1,0 +1,34 @@
+## 
+## $Id: backup_log,v 1.2 2012/10/10 11:53:19 jozhao Exp $
+## Usage:        
+## Date       By        Comment
+## 2012/03/04 Jozhao    This is a part of LoadMgr
+##
+
+#create subdirectory for log files and backup last run
+function backup_log {
+ 
+   cd ${LOG_ROOT}
+
+   ## create directory for the package if doesn't exit 
+   if [[ ! -d ${PACKAGE_NAME} ]] ; then
+     mkdir ${PACKAGE_NAME}
+     return 0
+   fi
+
+   ## get timestamp for the previous log directory
+   get_dir_timestamp
+      
+   if [[ ! -d ${LOG_BACKUP_ROOT}/${PACKAGE_NAME}_${dir_timestamp} ]] ; then
+     mkdir ${LOG_BACKUP_ROOT}/${PACKAGE_NAME}_${dir_timestamp} 
+   fi
+
+   ## backup existing sas log and lst files
+   print "Backing up log files under ${LOG_ROOT}/${PACKAGE_NAME} to ${LOG_BACKUP_ROOT}/${PACKAGE_NAME}_${dir_timestamp} ..."
+   ls -l ${PACKAGE_NAME} | egrep ".\.log.*|.\.lst.*|.\.html|.\.csv|.\.nmon" | awk '{print $9}' |  while read log_file_name 
+   do
+       if [[ -f $PACKAGE_NAME/$log_file_name ]]; then
+          mv $PACKAGE_NAME/$log_file_name ${LOG_BACKUP_ROOT}/${PACKAGE_NAME}_${dir_timestamp}
+       fi
+   done
+}

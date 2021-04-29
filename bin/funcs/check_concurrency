@@ -1,0 +1,31 @@
+## 
+## $Id: check_concurrency,v 1.1 2012/03/23 17:17:14 jozhao Exp $
+## Usage:   {0} ${PACKAGE_NAME}
+## Date       By        Comment
+## 2012/03/23 Jozhao    This is a part of LoadMgr
+
+function check_concurrency {
+   typeset pid
+   typeset ppid
+   typeset comm 
+   typeset args 
+   typeset concurrency_lvl=0
+   
+   ps -e -o pid,ppid,comm,args | grep "runjob.sh" | {   
+   while read pid ppid comm args
+      do
+         if [[ ${CONCURRENCY_SCOPE} -eq 0 ]]; then
+            if [[ $comm != grep  && $$ == $ppid ]]; then
+               ((concurrency_lvl+=1)) 
+            fi
+         else
+            if [[ $comm != grep ]]; then
+               ((concurrency_lvl+=1)) 
+            fi
+         fi
+      done 
+   }
+
+   #echo "concurrecy level = $concurrency_lvl"
+   return $concurrency_lvl 
+}

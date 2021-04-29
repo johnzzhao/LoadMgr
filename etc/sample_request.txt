@@ -1,0 +1,29 @@
+## If the file is gzipped and encrypted, still only keep the original name
+[[SOURCE_FILE_LIST]]
+stg_date.txt  1
+stg_geography_parent.txt 1
+stg_product_parent.txt 1
+stg_attribute.txt 1
+stg_geography_attr_lookup.txt 1
+stg_geography_attributes.txt 1
+stg_product_attr_lookup.txt 1
+stg_product_attributes.txt  1
+stg_store_category_member.txt 1
+stg_prf_sales.txt 1 
+stg_prf_stockout.txt 1
+stg_prf_geo_prod.txt 1
+stg_size_translation.txt 1
+stg_src_size.txt 1
+stg_std_size.txt 1
+stg_prod_dc_store.txt 1
+stg_demand_disagg_factor.txt 1
+
+[[REQUEST_TYPE]]
+PROCESS_TYPE=DV      # DV -SRC2STG & Data validation; DQ - DV & STG2DM & DQ; ALL - DQ plus DF
+
+[[LOAD_TYPE]]
+LOAD_TYPE=INIT    # INIT - initial historical load; INCR - incremental load 
+
+[[TRUNCATION]]
+TRUNCATION=YES    # only relevant for LOAD_TYPE=INIT. YES-truncate di_dm for init 
+
