@@ -1,0 +1,59 @@
+## 
+## $Id: is_done,v 1.6 2013/05/08 17:17:41 jozhao Exp $
+## Usage:  this shell script is called by LoadMgr.sh internally
+## Date       By        Comment
+## 2012/03/23 Jozhao    This is a part of LoadMgr
+
+function is_done {
+   #define local variables
+   typeset -L38 task_id
+   typeset statuscode  
+   typeset begtime
+   typeset endtime 
+   typeset pid
+   typeset ppid
+   typeset rc
+   typeset num_rec=0
+   ## get lock
+   while ! $(ln -s ${LOCKFILE} ${GETLOCK} 2>/dev/null)
+   do  
+      sleep ${REST_TIME} 
+   done
+ 
+   while read pid ppid task_id program_nm begtime endtime statuscode 
+   do
+      #echo $pid $ppid $task_id $program_nm $begtime $endtime $statuscode  ...
+      if [[ ${program_nm} != ${loadmgr_nm} ]]; then
+         case $statuscode in   
+            RUNNING) 
+               rc=0 ;;
+            DONE) 
+               rc=1;;
+            FAILED) 
+               rc=2;;
+            TERMINATED) 
+               rc=3;;
+            * ) 
+               print "invalid status code ..." 
+               rc=4;;
+         esac
+         ((num_rec+=1))
+         
+         ## leave if there is any running or failed tasks
+         if [[ $rc -ne 1 ]]; then
+            rm -f ${GETLOCK}
+            return $rc
+         fi
+      fi 
+   done < ${LOGFILE} 
+
+   if [[ $num_rec -eq ${#tasks[*]} ]]; then
+      ((rc=1))
+   else 
+      ((rc=0))
+   fi
+
+   #remove getlock
+   rm -f ${GETLOCK} 
+   return $rc
+}

@@ -1,0 +1,64 @@
+## 
+## $Id: get_dir_timestamp,v 1.1 2012/10/10 11:53:19 jozhao Exp $
+## Usage:        
+## Date       By        Comment
+## 2012/10/10 Jozhao    This is a part of LoadMgr
+##
+
+function get_dir_timestamp {
+   typeset yy 
+   typeset -RZ2  mm
+   typeset month 
+   typeset -RZ2 dd
+   typeset ss
+   typeset hosttype
+   
+   hosttype=$(uname)
+   case ${hosttype} in
+
+   AIX)
+      yy=$(istat $PACKAGE_NAME | awk '/updated/ {print $7}')
+      month=$(istat $PACKAGE_NAME | awk '/updated/ {print $4}')
+      dd=$(istat $PACKAGE_NAME | awk '/updated/ {print $5}')
+      ss=$(istat $PACKAGE_NAME | awk '/updated/ {print $6}')
+
+      case $month in
+         Jan)
+            mm=1 ;;
+         Feb)
+            mm=2 ;;
+         Mar)
+            mm=3 ;;
+         Apr)
+            mm=4 ;;
+         May)
+            mm=5 ;;
+         Jun)
+            mm=6 ;;
+         Jul)
+            mm=7 ;;
+         Aug)
+            mm=8 ;;
+         Sep)
+            mm=9 ;;
+         Oct)
+            mm=10 ;;
+         Nov)
+            mm=11 ;;
+         Dec)
+            mm=12 ;;
+      esac
+      ss=${ss//:/}
+      dir_timestamp=$yy-$mm-$dd-$ss
+      ;;
+   Linux)
+      dir_timestamp=$(stat -c %y ${PACKAGE_NAME})
+      dir_timestamp=${dir_timestamp%%.*}
+      dir_timestamp=$(print  ${dir_timestamp/ /-})
+      dir_timestamp=$(print  ${dir_timestamp//:/})
+      ;;
+   *)
+      echo "error: unknown host type"
+      ;;
+   esac
+}

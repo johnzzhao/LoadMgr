@@ -1,0 +1,18 @@
+## 
+## $Id: init_pid_array,v 1.2 2012/03/28 17:57:12 jozhao Exp $
+## Usage:
+## Date       By        Comment
+## 2012/03/22 Jozhao    This is a part of LoadMgr
+##
+
+function init_pid_array {
+  typeset i=0
+  while [[ i -lt $1 ]]
+  do
+     pid_array[i]=0
+     status_array[i]=0
+     run_ind_array[i]=0
+     blocked_array[i]=0
+     ((i=$i+1))
+  done
+}

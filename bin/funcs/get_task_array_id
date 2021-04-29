@@ -1,0 +1,23 @@
+## 
+## $Id: get_task_array_id,v 1.2 2012/03/28 17:57:12 jozhao Exp $
+## Usage:
+## Date       By        Comment
+## 2012/03/08 Jozhao    This is a part of LoadMgr
+##
+function get_task_array_id {
+   typeset i=0
+
+   while (( $i < ${#tasks[*]} ))
+   do
+      eval taskid=\${tasks[$i]} 
+      # check whether current task matches the taskid
+      if [[ $taskid -eq $1 ]]; then 
+         predecessor_id_exist=1
+         return $i;
+      fi
+      ((i+=1))
+   done  
+   ##echo "Warning! A predecessor is not defined in job configuration, please fix it!"
+   ##assume the job id must be a postitive number
+   predecessor_id_exist=0
+}

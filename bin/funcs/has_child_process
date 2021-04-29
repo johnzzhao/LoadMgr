@@ -1,0 +1,43 @@
+## 
+## $Id: has_child_process,v 1.2 2013/05/08 17:17:41 jozhao Exp $
+## Usage:  this shell script is called by LoadMgr.sh internally
+## Date       By        Comment
+## 2012/03/24 Jozhao    This is a part of LoadMgr
+
+function  has_child_process {
+   ##define local variables
+   typeset task_id
+   typeset statuscode 
+   typeset begtime
+   typeset endtime 
+   typeset found=0
+   typeset pid
+   typeset ppid
+   typeset rc 
+
+   # get lock
+   while ! $(ln -s ${LOCKFILE} ${GETLOCK} >/dev/null 2>&1)
+   do
+     #echo "waiting lock for check status"
+     sleep ${REST_TIME} 
+   done
+
+   while read pid ppid task_id program_nm begtime endtime statuscode 
+   do
+     if [[ ${statuscode} == RUNNING && $ppid != ${CONTROLLER_PID} ]]; then 
+        #echo "check process $pid.. $ppid.. $statuscode ..." 
+        is_running $pid
+        if [[ $? -eq 1 ]]; then
+           #echo " process $pid is runing ..."  
+           #remove getlock
+           rm -f ${GETLOCK}
+           return 1
+        fi
+     fi 
+   done  < ${LOGFILE}
+
+   #remove getlock
+   rm -f ${GETLOCK}
+ 
+   return 0
+}
