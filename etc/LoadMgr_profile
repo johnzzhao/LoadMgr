@@ -1,0 +1,96 @@
+## $Id: .LoadMgr_profile,v 1.24 2016/04/13 13:19:47 jozhao Exp $
+## Usage:  This profile  is sourced at LoadMgr execution time to define its environment  
+## Date       By        Comment
+## 2012/03/04 Jozhao    This is a part of LoadMgr
+##
+
+## Section I - LoadMgr environment variable
+## please change before using LoadMgr 
+##
+export LOADMGR_HOME=
+export SRC_ROOT=$LOADMGR_HOME/src        ## backend program and script home, MAKE SURE YOU CREATE IT 
+export LOG_ROOT=$LOADMGR_HOME/logs       ## MAKE SURE YOU CREATE the directory
+export LOG_BACKUP_ROOT=$LOG_ROOT/backup  ## batch process log archive home directory, MAKE SURE YOU CREATE IT
+export ENV_ID=INTERNAL-DEV               ## the ENV_ID will be include in the LoadMgr email subject line
+
+export CONCURRENCY_LVL=2
+export CONCURRENCY_SCOPE=0               ## 0-only check concurrency within the package, 1- check the concurrency across the OS server
+
+export NOTIFICATION_ADDRESS=             # use double quote if more than one email addresses
+export CC_NOTIFICATION_ADDRESSES=        # use double quote if more than one email addresses
+export REPLY_TO=                         # set reply-to email address
+export AWS_SMTP_SERVER=0                 # if LoadMgr runs on AWS, set to 1
+export SAS_WARNING_NOTIFICATION=0        # 0 - no notification email when sas program finishes with warning  
+
+## SAS system settings
+export SASROOT=                                   #enter path for SASROOT
+export SASCONFIG=$LOADMGR_HOME/etc/sasv9.cfg      #if not set, SAS will pick up configurations based on the Order of Precedence for Processing SAS Configuration Files 
+export SASAUTOEXEC=$LOADMGR_HOME/etc/autoexec.sas
+export MEMSIZE=1G
+export SORTSIZE=512M
+export REALMEMSIZE=512M
+
+##
+## Section II - Additional LoadMgr environment variable
+## Please DO NOT make any changes unless you completely understand the impact
+##
+## Extend LoadMgr by developing packages of scripts/funcs, i.e. package extension, by set FPATH accordingly
+#export FPATH=$LOADMGR_HOME/bin/funcs:${LOADMGR_HOME}/extension/funcs
+export FPATH=$LOADMGR_HOME/bin/funcs
+export REST_TIME=0.5             ## number of seconds to sleep between checking next job to run 
+export CONCURRENCY_CHECK_TIME=0.5  ## number of seconds to sleep between checking concurrency 
+export LOADMGR_TMP_DIR=/tmp      ## temp directory that LoadMgr uses for internal temporary files
+export SYSTEM_MONITOR=0          ## turn on trace or truss if set to 1   IT WILL GENERATE LOG SYSTEM FILES.  make sure trace or truss is installed
+
+##
+## Section III - LoadMgr SAS Log Analyzer Integration Setting 
+##
+export SAS_LOG_ANALYZER=1   # 0-> don't use Analyzer, 1-> use the analyzer.  If set to 1, must define [[LOG_MESSAGE_INCLUDED]] and [[LOG_MESSAGE_EXCLUDED]] sections in 
+                            # package configuration file
+export LOG_REPORT_LVL=2     # 1-> summary, 2-> summary + detail log message
+export MAIL_REPORT=1        # 0-> don't email report, 1-> email report.  be aware of potentially email large report file!!!!
+export LOG_MAIL_ADDRESS=    # addresses defined here will receive log report, use double quote if more than one email addresses 
+export CC_LOG_MAIL_ADDRESS= # use double quote if more than one email addresses
+export FULLSTIMER_PARSE=0   # 1-> to run the parser to capture fullstimer stats into SAS dataset for performance analysis.  Make sure FULLSTIMER is on before turn on this parser.
+export RETAIN_FULLSTIMER_HIST=NO # YES -> to keep fullstimer stats history, be mindful of the size of the SAS dataset
+
+
+##
+## Section IV -- Performance and resource monitoring 
+##
+export MONITOR_RESOURCE=0 #  0-> don't monitor resource, 1-> use the monitor 
+export MAX_RUN_TIME=max   #  max - no limit on how long a package can run, {n} - max run time is {n} secords
+export NMON_CMD=/usr/bin/nmon
+export NMON_OPTION_S=300            #seconds between snap shots
+export NMON_OPTION_C=864            #number of refreshes, $NMON_OPTION_S x $NMON_OPTION_C should be longer than
+                                    #any LoadMgr job package since LoadMgr will end the NMON upon the complete of a package  
+
+##
+## Section V -- SAS Merchandise Solution di_dm backup settings
+##              The online backup is only recommended during deployment.  It uses rsync to archive quick incremental backup
+##              for fast recovery IF tape restore time is NOT adequate or operational feasible for the deployment.  
+##              Consideration of disk failure should be take into account of the choice of backup file system. 
+export BACKUP_DIR=
+export DI_DM_ROOT=
+export MAX_INCREMANTAL_BACKUP=2 
+export DI_MON_ROOT=
+export DI_SRC_ROOT=/var/ftp/source_files/di_src
+
+##
+## Section VI  - LoadMgr event utility and source file management
+## 
+##
+export EVENT_LOG_ROOT=$LOG_ROOT/event_logs
+export EVENT_LOG=$LOG_ROOT/loadmgr_events.log
+export CHECK_EVENT_TIME=60
+export EVENT_PROCESS_MODE=0        # 0 - sequential   1 -  parallel
+
+export SRC_FILE_LANDING_DIR=/var/ftp/source_files
+export SRC_FILE_ARCHIVE_ROOT=/var/ftp/source_files/di_src_archive
+export SRC_FILE_ENCRYPTION=0      # 0 - no encryption   1 = encrypted 
+export ENCRYPTION_PASSPHRASE=
+export SRC_FILE_COMPRESS=0        # 0 - no gzip 1 = gzipped
+
+##
+## Section VII Customization -- add any shell profile below to support your jobs 
+##  
