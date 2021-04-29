@@ -1,2 +1,2 @@
 # LoadMgr
-process management for SAS applications
+process management for applications running on Linux
