@@ -1,0 +1,25 @@
+## 
+## $Id: monitor_resource,v 1.4 2018/01/11 20:23:04 ranliu Exp $
+## Usage:  This profile  is sourced at LoadMgr execution time to define its environment
+## Date       By        Comment
+## 2012/03/31 Jozhao    This is a part of LoadMgr
+
+function monitor_resource {
+   ## start nmon
+   $NMON_CMD -F ${LOG_ROOT}/${PACKAGE_NAME}/nmon_$PACKAGE_NAME.nmon -T  -r ${PACKAGE_NAME}_${TIMESTAMP_STR} -s $NMON_OPTION_S -c $NMON_OPTION_C -p >/dev/null &
+   sleep 2 
+   if [[ $(ps -ef | grep nmon | grep ${PACKAGE_NAME}_${TIMESTAMP_STR} | wc -l) = 0 ]]; then
+      print "failed to start monitoring resource!!"
+   else
+      print "starting resoruce minotor ..."
+      ps -e -o pid,comm,args | grep nmon | grep ${PACKAGE_NAME}_${TIMESTAMP_STR} | read pid comm args
+      export MONITOR_PID=$pid
+   fi
+
+   ## start vmstat
+   ${LOADMGR_HOME}/util/run_vmstat.sh ${PACKAGE_NAME}_${TIMESTAMP_STR} >/dev/null &
+   export VMSTAT_PID=$!
+   if [[ $(ps -ef | grep vmstat | grep ${PACKAGE_NAME}_${TIMESTAMP_STR} | wc -l) = 0 ]]; then
+      print "failed to start vmstat!"
+   fi
+}

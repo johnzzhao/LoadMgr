@@ -1,0 +1,29 @@
+## 
+## $Id: send_report,v 1.4 2014/10/01 14:35:17 jozhao Exp $
+## Usage:  this shell script is called by LoadMgr.sh internally
+## Date       By        Comment
+## 2012/03/24 Jozhao    This is a part of LoadMgr
+## 2013/11/03 Jozhao    Update mail function for Linux version 2.6.32-
+
+function send_report {
+   hosttype=$(uname)
+   if [[ $AWS_SMTP_SERVER -eq 1 ]]; then 
+       mail -s "$2" -c "$4" -r "$5"  "$3" < $1
+   else 
+      case $hosttype in
+         SunOS)
+            mailx -s "$2" -c "$4" "$3" < $1
+            ;;
+         AIX)
+            mail -s "$2" -c "$4" -r "$5"  "$3" < $1
+            ;;
+         Linux)
+          mail -s "$2" -c "$4" -r "$5"  "$3" < $1 ## Comment out this line if you are using Linux lower than 2.6.32-
+          ##mail -s "$2" -c "$4" "$3" -- -f "$5" < $1  ## Uncomment out this line if you are using Linux lower than 2.6.32-
+            ;;
+         *)
+            echo "error: unknown host type"
+            ;;
+      esac
+   fi
+}

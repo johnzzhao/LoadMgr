@@ -1,0 +1,57 @@
+## 
+## $Id: terminate_loadmgr,v 1.12 2014/06/06 16:17:54 jozhao Exp $
+## Usage:   {0} ${PACKAGE_NAME}
+## Date       By        Comment
+## 2012/03/22 Jozhao    This is a part of LoadMgr
+
+
+function terminate_loadmgr {
+   #write log with TERMINATE status
+   write_status_log "-" ${loadmgr_nm} TERMINATED "$$" ${CONTROLLER_PID}
+
+   #remove lock files for controller and its children
+   rm -f ${GETLOCK} 
+   rm -f ${LOCKFILE}
+   #remove status file for controller itself
+   rm -f ${tmpstatus}
+  
+   ## remove pid file 
+   if [[ -e ${LOG_ROOT}/status/${PACKAGE_NAME}.pid ]]; then
+      rm -f  ${LOG_ROOT}/status/${PACKAGE_NAME}.pid
+   fi 
+
+   ## run loadmgr log analyzer
+   if [[ ${SAS_LOG_ANALYZER} -eq 1 ]]; then
+      ${LOADMGR_HOME}/util/run_log_analyzer.sh ${PACKAGE_NAME}
+   fi
+   
+ 
+   ## run fullstimer log analyzer
+   if [[ ${FULLSTIMER_PARSE} -eq 1 ]]; then
+      ${LOADMGR_HOME}/util/run_fullstimer_parser.sh ${PACKAGE_NAME}
+   fi
+   
+
+   ## turn off resource monitor
+   if [[ ${MONITOR_RESOURCE} -eq 1 ]]; then
+      ## stop nmon
+      if [[ $(ps -ef | grep nmon | grep ${PACKAGE_NAME}_${TIMESTAMP_STR} | wc -l) = 0 ]]; then
+         print "nmon is no long running ..."
+      else 
+         print "Stopping nmon ..."
+         kill -9 ${MONITOR_PID}
+      fi
+      
+      ## stop vmstat
+      if [[ $(ps -ef | grep vmstat | grep ${PACKAGE_NAME}_${TIMESTAMP_STR} | wc -l) = 0 ]]; then
+         print "vmstat is no long running ..."
+      else 
+         print "Stopping vmstat ..."
+         kill -9 ${VMSTAT_PID}
+      fi
+   fi
+
+   lm_mail " " "${ENV_ID} LOADMGR NOTIFICATION - ${PACKAGE_NAME} terminated on $(date +"%Y-%m-%d %H:%M:%S")" "$NOTIFICATION_ADDRESS" "$CC_NOTIFICATION_ADDRESSES" "$REPLY_TO"
+   print "No more tasks to run, terminate LoadMgr ..."
+   exit 1
+}

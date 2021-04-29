@@ -1,0 +1,59 @@
+## 
+## $Id: loadmgr_exit,v 1.13 2014/06/06 16:17:54 jozhao Exp $
+## Usage:  this shell script is called by LoadMgr.sh internally
+## Date       By        Comment
+## 2012/03/23 Jozhao    This is a part of LoadMgr
+
+function loadmgr_exit {
+
+   ## write status log record
+   write_status_log "-"  ${loadmgr_nm} DONE "$$" ${CONTROLLER_PID}
+
+   ## move status file to log directory
+   mv ${LOGFILE} ${LOG_ROOT}/${PACKAGE_NAME}/${PACKAGE_NAME}_${TIMESTAMP_STR}.log 2>/dev/null 
+   ## remove lock files and its children
+   rm -f ${LOCKFILE}
+   rm -f ${GETLOCK}
+
+   ## remove tmp status file for controller.sh only
+   rm -f $tmpstatus
+
+   ## remove pid file 
+   if [[ -e ${LOG_ROOT}/status/${PACKAGE_NAME}.pid ]]; then
+      rm -f ${LOG_ROOT}/status/${PACKAGE_NAME}.pid
+   fi 
+
+
+   ## run loadmgr log analyzer
+   if [[ ${SAS_LOG_ANALYZER} -eq 1 ]]; then
+      ${LOADMGR_HOME}/util/run_log_analyzer.sh ${PACKAGE_NAME}
+   fi
+   
+   ## run fullstimer log analyzer
+   if [[ ${FULLSTIMER_PARSE} -eq 1 ]]; then
+      ${LOADMGR_HOME}/util/run_fullstimer_parser.sh ${PACKAGE_NAME}
+   fi
+   
+   ## turn off resource monitor
+   if [[ ${MONITOR_RESOURCE} -eq 1 ]]; then
+      ## stop nmon
+      if [[ $(ps -ef | grep nmon | grep ${PACKAGE_NAME}_${TIMESTAMP_STR} | wc -l) = 0 ]]; then
+         print "nmon is no long running ..."
+      else 
+         print "Stopping nmon ..."
+         kill -9 ${MONITOR_PID}
+      fi
+      
+      ## stop vmstat
+      if [[ $(ps -ef | grep vmstat | grep ${PACKAGE_NAME}_${TIMESTAMP_STR} | wc -l) = 0 ]]; then
+         print "vmstat is no long running ..."
+      else 
+         print "Stopping vmstat ..."
+         kill -9 ${VMSTAT_PID}
+      fi
+   fi
+
+
+   ## send loadmgr notification
+   lm_mail "It started at $START_TIME" "${ENV_ID} LOADMGR NOTIFICATION - $PACKAGE_NAME finished at $(date +"%Y-%m-%d %H:%M:%S")"  "${NOTIFICATION_ADDRESS}" "${CC_NOTIFICATION_ADDRESSES}" "${REPLY_TO}"
+}

@@ -1,0 +1,26 @@
+## 
+## $Id: set_env,v 1.2 2016/01/17 15:45:46 jozhao Exp $
+## Usage:     autoload all functions 
+## Date       By        Comment
+## 2012/03/04 Jozhao    This is a part of LoadMgr
+##
+
+## Autoload all functions in FPATH directories.
+function set_env {
+   typeset i=0
+
+   # parse function directories
+   OLD_IFS=$IFS
+   IFS=":"
+   set -A dir_arry $FPATH
+   IFS=$OLD_IFS
+   
+   while (( i < ${#dir_arry[*]} ))
+   do
+      for d in ${dir_arry[$i]}
+      do
+         autoload $(ls $d)
+      done
+      (( i=i+1 ))
+   done
+}

@@ -1,0 +1,118 @@
+## 
+## $Id: wait_predecessors,v 1.7 2013/08/19 02:06:19 jozhao Exp $
+## Usage:   {0} ${PACKAGE_NAME}
+## Date       By        Comment
+## 2012/03/22 Jozhao    This is a part of LoadMgr
+##
+function wait_predecessors { 
+   typeset index=$1 
+   typeset arr_size 
+   typeset task_seq_code 
+   typeset task_code 
+   typeset i=0
+   typeset waitcode
+   typeset statuscode
+   typeset rc=0
+   typeset tmp_rc=0
+
+   eval arr_size=\${#predecessor_array$index[*]}  
+   eval waitcode=\${predecessor_array$index[0]} 
+   
+   if [[ arr_size -eq 1 && $waitcode = ALL ]]; then    ##check all tasks above
+      while (( $i < $index ))                          ##check all tasks above the current task
+      do
+         eval task_code=\${tasks[$i]} 
+         # check predecessor status from status log file
+         check_status $task_code
+         statuscode=$?
+
+         case $statuscode in   
+            0) 
+               ## haven't been run, return 1
+               tmp_rc=1 
+               HAS_MORE_JOB=1
+               ;;
+            1) 
+               ## running, return 1
+               tmp_rc=1
+               ;;
+            2) 
+               ## failed, return 1
+               tmp_rc=1
+               if  [[ ${run_ind_array[$i]} -eq 1 ]]; then 
+                  blocked_array[$index]=1 
+                  #echo "inside of ${0} task_seq=$index is blocked ..."
+               fi
+               ;;
+            3) 
+               ## done, return 0
+               tmp_rc=0
+               ;;
+         esac
+         ## set rc value  
+         if [[ $tmp_rc -eq 1 ]]; then
+            rc=1
+         fi
+       
+         ((i+=1))
+      done  
+   else 
+      while (( $i < $arr_size ))                      ##check all predecessors
+      do
+         eval task_code=\${predecessor_array$index[$i]}
+         eval task_seq_code=\${task_seqID[${task_code}]}
+
+         #echo "${0}: Task ${index}th ${programs[$1]} has predecessor:  $task_code ${programs[$task_seq_code]} with block code ${blocked_array[$task_seq_code]}"
+
+         ## if the predecessor is blocked, then return 1
+         if [[ ${blocked_array[$task_seq_code]} -eq 1 ]]; then
+            blocked_array[$index]=1
+            #echo "inside of ${0} task_seq=$index is blocked ---"
+            return 1
+         fi
+
+         if [[  ${task_seq_code} == "" ]]; then
+             eval echo "tasks \${tasks[$1]} has a predecessor with task ID ${task_seq_code} and it doesn't exist!"
+             return 255 
+         fi
+
+         # check predecessor status
+         check_status ${task_code}
+         statuscode=$?
+         #echo "inside of ${0} Task ${index}th ${programs[$1]} has predecessor:  $task_code ${programs[$task_seq_code]} with status code of $statuscode ..."
+
+         case $statuscode in   
+            0) 
+               ## haven't been run, return 1 to indicate there is predecessor and more job to run
+               tmp_rc=1 
+               HAS_MORE_JOB=1
+               ;;
+            1) 
+               ## running, return 1
+               tmp_rc=1
+               ;;
+            2) 
+               ## failed, return 1
+               tmp_rc=1
+               ## if the predecessor is failed in current run, block the task
+               if  [[ ${run_ind_array[$task_seq_code]} -eq 1 ]]; then 
+                  blocked_array[$index]=1 
+               fi
+               ;;
+            3) 
+               ## done, return 0
+               tmp_rc=0
+               ;;
+         esac
+         ## set rc value  
+         if [[ $tmp_rc -eq 1 ]]; then
+            rc=1
+         fi
+
+         ((i+=1))
+      done  
+   fi
+
+   #echo "inside of ${0} Task ${index}th wait code is $rc"
+   return $rc 
+}

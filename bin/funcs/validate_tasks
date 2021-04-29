@@ -1,0 +1,92 @@
+## 
+## $Id: validate_tasks,v 1.6 2012/11/10 16:30:47 jozhao Exp $
+## Usage: 
+## Date       By        Comment
+## 2012/03/08 Jozhao    This is a part of LoadMgr
+##
+
+function validate_tasks {
+    typeset arr_size
+    typeset task_id
+    typeset task_seq_code
+    typeset predecessor_id
+    typeset valid_cfg=1 
+    typeset i=0
+    typeset j=0
+    typeset k=0
+    typeset -i task_int predecessor_int
+
+
+    ## loop through each task
+    while [[ $j -lt ${#tasks[*]} ]]
+    do
+       ## get number of predecessors for current task 
+       eval arr_size=\${#predecessor_array$j[*]}
+       k=0
+       ## loop through each predecessor
+       while (( $k < $arr_size ))
+       do
+          #eval echo "tasks[$j]=\${tasks[$j]} ... predecessor_array$j[$k]=\${predecessor_array$j[$k]} ..."
+          ##
+          predecessor_id_exist=0
+          
+          ## get predecessor task ID
+          eval predecessor_id=\${predecessor_array$j[$k]}
+          #eval echo "Taks[$j]=\${tasks[$j]} ... Tasks[$j]=\${tasks[$j]} ...  predecessor_id=$predecessor_id ... "
+
+          ## check whether the task IDs are integer
+          eval task_id=\${tasks[$j]}
+          task_int=${task_id}
+          predecessor_int=$predecessor_id
+
+          if [[ $predecessor_id != ALL && ($task_int != $task_id || $predecessor_int != $predecessor_id) ]]; then
+            print "Task ID $task_id or Predecessor ID $predecessor_id  must be integer..."
+            valid_cfg=0 
+          fi
+
+          ## get task sequence id based on the predecessors tasksid
+          if  [[ ${predecessor_id} != ALL ]]; then
+             #get_task_array_id ${predecessor_id}
+
+             eval task_seq_code=\${task_seqID[${predecessor_id}]} 
+
+             if [[ ${task_seq_code} == "" ]]; then
+                eval echo "task \${tasks[$j]} has a predecessor with ${predecessor_id} and it doesn't exist!"
+                valid_cfg=0                     
+             fi
+  
+             if [[ ${tasks[$j]} -eq ${predecessor_id} ]]; then
+                eval echo "tasks \${tasks[$j]} has itself as predecessor "
+                valid_cfg=0                     
+             fi
+          fi
+          ((k+=1))
+       done
+       ((j+=1))
+    done
+
+
+#####
+#  need to find duplicated task id
+###
+## check files
+    ## get source code location
+    src_root_dir=${LOCAL_SRC_ROOT:-${SRC_ROOT}}
+
+    while [[ $i -lt ${#tasks[*]} ]]
+    do
+       ## get program name for the current task
+       eval program_nm=\${programs[$i]}
+
+       if ! [[ -f ${src_root_dir}/${PACKAGE_NAME}/${program_nm} || -f ${program_nm} ]]; then
+          print "${program_nm} doesn't exit"
+          valid_cfg=0
+       fi
+       ((i+=1))
+    done
+     
+    ## return validation error
+    if [[ $valid_cfg -eq 0  ]]; then
+        return 255 
+    fi
+}

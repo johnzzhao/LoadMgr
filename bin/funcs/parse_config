@@ -1,0 +1,111 @@
+## 
+## $Id: parse_config,v 1.17 2013/11/14 21:12:21 jozhao Exp $
+## Usage:  
+## Date       By        Comment
+## 2012/03/05 Jozhao    This is a part of LoadMgr
+##
+
+function parse_config {
+   typeset section=$"Null"
+   typeset line
+   typeset i=0
+   typeset j=0
+   typeset conf_file
+   typeset OLD_IFS  
+   typeset config_error=0
+   typeset msg_included_file=${LOG_ROOT}/${PACKAGE_NAME}/${PACKAGE_NAME}_included.msg
+   typeset msg_excluded_file=${LOG_ROOT}/${PACKAGE_NAME}/${PACKAGE_NAME}_excluded.msg
+
+   conf_file=$1
+
+   ## remove log analyzer files if exist
+   if ! [[ -d ${LOG_ROOT}/${PACKAGE_NAME} ]]; then
+      mkdir ${LOG_ROOT}/${PACKAGE_NAME} 
+   fi 
+
+   if [[ -e ${msg_included_file} ]]; then
+      rm -f ${msg_included_file}
+   fi
+
+   if [[ -e ${msg_excluded_file} ]]; then
+      rm -f ${msg_excluded_file}
+   fi
+
+   ## remove comment lines, empty line  and parse the configuration file
+   grep  "^[^#| #|   #]" $1 | grep -v "^[[:blank:]]$" | { 
+       while read line
+       do
+          case $line in
+          [[JOB_LIST]])
+             section="meta"
+             continue
+             ;;
+          [[JOB_PARAMETER]])
+             section="parm"
+             continue
+             ;;
+          [[LOCAL_SETTING]])
+             section="settings"
+             continue
+             ;;
+          [[LOG_MESSAGE_INCLUDED]])
+             section="msg_included"
+             continue
+             ;;
+          [[LOG_MESSAGE_EXCLUDED]])
+             section="msg_excluded"
+             continue
+             ;;
+          esac
+
+          ## parse the three different sections
+          case $section in
+          meta)
+             set -A tmp_job_arry $line 
+             tasks[$i]=${tmp_job_arry[0]}
+             programs[$i]=${tmp_job_arry[1]}
+             eval  task_seqID["${tmp_job_arry[0]}"]=$i
+             parse_predecessors $i "${tmp_job_arry[2]}" 
+             ((i= $i + 1 ))
+              ;;
+          parm)
+              OLD_IFS=$IFS
+              IFS="|"
+              set -A tmp_parm_arry $line 
+              parms[${tmp_parm_arry[0]}]=${tmp_parm_arry[1]}
+              IFS=$OLD_IFS
+              ;;
+          settings)
+              line=${line%%#*}
+              export "$line" 
+              ;;
+          msg_included)
+              print "$line" >> ${msg_included_file}
+              ;;
+          msg_excluded)
+              print "$line" >> ${msg_excluded_file}
+              ;;
+          *)
+              print "Invalid section head ..."
+              exit 1
+          esac  
+       done 
+   }
+
+    ## check whether a program is used multiple time
+    i=0
+    while [[ i -lt ${#tasks[*]} ]]
+    do
+        duplicate_ind[$i]=0
+        while [[ j -lt ${#tasks[*]} ]]
+        do
+            if [[ ${programs[$i]} == ${programs[$j]} && $i -ne $j ]]; then
+                duplicate_ind[$i]=1
+                break
+            fi
+            ((j=$j+1))
+        done
+        j=0
+        ((i=$i+1))
+    done
+} 

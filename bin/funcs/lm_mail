@@ -1,0 +1,30 @@
+## 
+## $Id: lm_mail,v 1.4 2014/10/01 14:35:17 jozhao Exp $
+## Usage:  this shell script is called by LoadMgr.sh internally
+## Date       By        Comment
+## 2012/03/25 Jozhao    This is a part of LoadMgr
+## 2013/11/03 Jozhao    Update mail function for Linux version 2.6.32-
+
+function lm_mail {
+   if [[ $AWS_SMTP_SERVER -eq 1 ]]; then
+      echo $1 | mail -s "$2" -c "$4" -r "$5"  "$3"
+   else 
+      case $HOSTTYPE in
+         SunOS)
+            echo $1 | mailx -s "$2" -c "$4" "$3"
+            ;;
+         AIX)
+            echo $1 | mail -s "$2" -c "$4" -r "$5"  "$3"
+            ;;
+         Linux)
+            echo $1 | mail -s "$2" -c "$4" -r "$5"  "$3" ## Comment out this line if you are using Linux lower than 2.6.32-
+          ##echo $1 | mail -s "$2" -c "$4" "$3" -- -f "$5"  ## Uncomment out this line if you are using Linux lower that 2.6.32-
+            ;;
+         UWIN-XP)
+         ;;
+         *)
+            echo "error: unknown host type"
+            ;;
+      esac
+   fi
+}

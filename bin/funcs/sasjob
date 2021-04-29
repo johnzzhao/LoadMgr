@@ -1,0 +1,75 @@
+## $Id: sasjob,v 1.14 2015/03/08 03:57:50 jozhao Exp $
+## Date       By        Comment
+## 10/28/06   John Zhao This is a part of Hesas_rc_codeules application, which is a unix parallel job management application. 
+##                      It runs a sas program. 
+
+##function to run a sas job
+function sasjob  {
+  typeset monitor_str
+  case $HOSTTYPE in
+  SunOS|Linux)
+     monitor_str="trace -o $LOG_ROOT/$PACKAGE_NAME/$2.trace" 
+     ;;
+  AIX)
+     monitor_str="truss -lfaed -o $LOG_ROOT/$PACKAGE_NAME/$2.truss" 
+     ;;
+  UWIN-XP)
+     ;;
+  *)
+     echo "error: unknown host type" ;;
+  esac
+ 
+   test -d ${SRC_ROOT}/${PACKAGE_NAME} && cd ${SRC_ROOT}/${PACKAGE_NAME}
+
+   if [[ $3 = undefined ]]; then
+      if [[ ${SASCONFIG} = "" ]]; then
+         if [[ ${SYSTEM_MONITOR} -eq 1 ]]; then
+            ${monitor_str} "$SASROOT"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC}  -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst -sysin $1.sas
+         else 
+            "$SASROOT"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC}  -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst -sysin $1.sas
+         fi 
+      else
+         if [[ ${SYSTEM_MONITOR} -eq 1 ]]; then
+            ${monitor_str} "${SASROOT}"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC} -config ${SASCONFIG} -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst -sysin $1.sas
+         else 
+            "${SASROOT}"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC} -config ${SASCONFIG} -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst -sysin $1.sas
+         fi 
+      fi
+   else 
+      if [[ ${SASCONFIG} = "" ]]; then
+         if [[ ${SYSTEM_MONITOR} -eq 1 ]]; then
+            ${monitor_str} "${SASROOT}"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC} -sysparm "$3" -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst -sysin $1.sas
+         else 
+            "${SASROOT}"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC} -sysparm "$3" -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst -sysin $1.sas
+         fi 
+      else
+         if [[ ${SYSTEM_MONITOR} -eq 1 ]]; then
+            ${monitor_str} "${SASROOT}"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC} -config ${SASCONFIG} -sysparm "$3" -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst  -sysin $1.sas
+         else 
+            "${SASROOT}"/sas -noterminal -memsize ${MEMSIZE} -realmemsize ${REALMEMSIZE} -sortsize ${SORTSIZE} -autoexec ${SASAUTOEXEC} -config ${SASCONFIG} -sysparm "$3" -log ${LOG_ROOT}/${PACKAGE_NAME}/$2.log -print ${LOG_ROOT}/${PACKAGE_NAME}/$2.lst  -sysin $1.sas
+         fi 
+      fi
+   fi 
+   #ls  -l $1.sas
+   ##tracking errors OS specific!!!!
+   sas_rc_code=$?
+
+   timestamp=`date +"%Y-%m-%d %H:%M:%S"`
+   if [[ ${sas_rc_code} -gt 1 ]]; then
+      lm_mail "Task ${4} $1.sas failed ${timestamp}"  "${ENV_ID} LOADMGR NOTIFICATION - Task $1 in $PACKAGE_NAME failed"  "${NOTIFICATION_ADDRESS}" "${CC_NOTIFICATION_ADDRESSES}" "${REPLY_TO}"
+      print "${timestamp} --> sas_rc_code = ${sas_rc_code} Task ${4}: $1.sas failed with errors!"
+      
+      #clean up sas work
+      #"${SASROOT}"/utilities/bin/cleanwork /data/saswork 2>/dev/null
+      return 1
+   fi
+
+   if [[ ${sas_rc_code} -eq 1 && ${SAS_WARNING_NOTIFICATION} -eq 1 ]]; then
+      lm_mail "Task ${4} $1.sas finished with warning on ${timestamp}" "${ENV_ID} LOADMGR NOTIFICATION - Task $1 in $PACKAGE_NAME finished with warning"  "${NOTIFICATION_ADDRESS}" "${CC_NOTIFICATION_ADDRESSES}" "${REPLY_TO}"
+      print "${timestamp} --> sas_rc_code = ${sas_rc_code} TaskID ${4}: $1.sas finished with warnings"
+      return 0
+   else
+      print "${timestamp}  --> sas_rc_code = ${sas_rc_code} TaskID ${4}: $1.sas finished successfully!"
+      return 0
+   fi
+}

@@ -1,0 +1,13 @@
+## 
+## $Id: is_running,v 1.1 2012/03/23 17:17:14 jozhao Exp $
+## Usage:  this shell script is called by LoadMgr.sh internally
+## Date       By        Comment
+## 2012/03/23 Jozhao    This is a part of LoadMgr
+
+function is_running {
+   if [[ $(ps -e -o pid | grep $1 | wc -l) -eq 0 ]]; then
+      return 0
+   else 
+      return 1
+   fi
+}

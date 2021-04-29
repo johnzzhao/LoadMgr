@@ -1,0 +1,12 @@
+## 
+## $Id: usage,v 1.4 2012/10/28 23:20:49 jozhao Exp $
+## Usage:  
+## Date       By        Comment
+## 2012/03/04 Jozhao    This is a part of LoadMgr 
+##                      
+
+function usage {
+   print "Usage: ${0} [-f] [-d <conf_file_dir>] -p [parameter value]  <conf_file_name - w/o extension .conf>"
+   print "You must specify a package name"  
+   exit 255
+}

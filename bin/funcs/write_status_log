@@ -1,0 +1,65 @@
+## $Id: write_status_log,v 1.7 2013/08/19 02:06:19 jozhao Exp $
+## Usage:  This profile  is sourced at LoadMgr execution time to define its environment
+## Date       By        Comment
+## 2012/03/17 Jozhao    This is a part of LoadMgr
+##
+
+function write_status_log {
+   ##define local variables
+   typeset -L4 task_id
+   typeset -L4 task_code=$1
+   typeset -L12 statuscode 
+   typeset -L18 begtime
+   typeset -L18 endtime 
+   typeset found=0
+   typeset -L8 pid
+   typeset -L8 ppid
+   typeset -L8 newpid=$4
+   typeset -L8 newppid=$5
+   typeset -L12 newstatus=$3
+   typeset -L42 new_program_nm=$2
+   typeset -L42 program_nm
+
+   ## get lock
+   while ! $(ln -s ${LOCKFILE} ${GETLOCK} 2>/dev/null)
+   do  
+      sleep ${REST_TIME} 
+   done
+   
+   ##echo "write_status_log for $program_nm has the lock ...."
+
+   # write status
+   while read pid ppid task_id program_nm  begtime endtime statuscode 
+   do 
+
+      if [[ "${task_id}" != "${task_code}" && "$program_nm" != "LoadMgr.sh" ]]; then
+         #echo "${pid} ${ppid} ${task_id} ${task_code}  ${program_nm}  ${begtime} ${endtime} ${statuscode}"
+         print "${pid} ${ppid} ${task_id} ${program_nm}  ${begtime} ${endtime} ${statuscode}" >> $tmpstatus
+      else 
+         found=1
+         if [[ ${newstatus} == RUNNING ]]; then
+            begtime=`date +"%Y%m%d-%H:%M:%S"` 
+            endtime=-
+         else 
+            endtime=`date +"%Y%m%d-%H:%M:%S"` 
+         fi   
+         statuscode=${newstatus}
+         #echo "${newpid} ${newppid} ${task_id}  ${task_code}  ${new_program_nm}  ${begtime} ${endtime} ${newstatus} ------" 
+         print "${newpid} ${newppid} ${task_id} ${program_nm}  ${begtime} ${endtime} ${statuscode}" >> $tmpstatus
+      fi
+   done < ${LOGFILE}
+
+   # new records
+   if [[ found -eq 0 ]]; then 
+      begtime=`date +"%Y%m%d-%H:%M:%S"` 
+      endtime=-
+      print "${newpid} ${newppid} ${task_code} ${new_program_nm}  ${begtime} ${endtime} ${newstatus}" >> $tmpstatus
+   fi
+
+   # copy content to the logfile
+   mv $tmpstatus ${LOGFILE}
+
+   #remove file getlock 
+   #echo "write_log for $program_nm release the lock ...."
+   rm -f ${GETLOCK}
+}
