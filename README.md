@@ -4,19 +4,18 @@ LoadMgr was developed originally using Korn shell 88 (ksh 88) on the AIX operati
 
 What’s New in Version 5.x
 
-LoadMgr 5.5 has significant enhancements as compared to previous releases of LoadMgr.  The following changes are included with LoadMgr 5.5:
-•	It is common that a LoadMgr process needs to finish within a time window to meeting SLA (Service Level Agreement).  Therefore, when a job fails, you may want to restart it while the process is still running.  In previous releases, you have to wait for the LoadMgr process to stop before resubmitting it.  LoadMgr 5.5 allows the Admin to re-run the failed process when it is running. 
-
+LoadMgr 5.5 has significant enhancements as compared to previous releases of LoadMgr.  The following changes are included with LoadMgr 5.5:  
+•	It is common that a LoadMgr process needs to finish within a time window to meeting SLA (Service Level Agreement).  Therefore, when a job fails, you may want to restart it while the process is still running.  In previous releases, you have to wait for the LoadMgr process to stop before resubmitting it.  LoadMgr 5.5 allows the Admin to re-run the failed process when it is running.  
 •	All Configuration files that define a LoadMgr package are now in a single configuration file.  The configuration file will have a .conf extension.  This replaces the .meta, .param, and .email files in LoadMgr 4.x.<br/>
-•	You can now use a SAS program more than once in a package.  Log file names will include the SAS program name plus the Task ID, which is unique in each package.  This way, you can simply define different parameter values for the same programs. 
-•	You can now use fully qualified SAS program names in a configuration (.conf) file.  This removes the requirement of having soft links to program directories, and allow you to have programs from different directories in the same configuration file.  You can still use soft links, if you wish.  You can override the default source code directory in your package configuration file.
-•	You can now use a “testing” area for dry runs of production programs.  Us the following syntax to use this feature:
+•	You can now use a SAS program more than once in a package.  Log file names will include the SAS program name plus the Task ID, which is unique in each package.  This way, you can simply define different parameter values for the same programs.   
+•	You can now use fully qualified SAS program names in a configuration (.conf) file.  This removes the requirement of having soft links to program directories, and allow you to have programs from different directories in the same configuration file.  You can still use soft links, if you wish.  You can override the default source code directory in your package configuration file.  
+•	You can now use a “testing” area for dry runs of production programs.  Us the following syntax to use this feature:  
 $LOADMGR/bin/controller.sh –d [testing_dir] [Package_name]
 
-•	The Log Analysis Report now has a separate e-mail distribution list.  This will allow remote consultant to receive LoadMgr notification on SMS based devices 
-•	Warning notification messages can now be disabled.  When disabled, you will no longer receive e-mail messages for SAS Warnings.
-•	LoadMgr 5.5 archives logs like its predecessors.  However, the backup directory is now time-stamped using its last update time.  This will help you find the correct log files when troubleshooting
-•	LoadMgr 5.5 integrates a log parser utility to provide FULLSTIMER statistics for performance analyzing.  You need to set FULLSTIMER_PARSE=1 in .LoadMgr_profile to enable this function.
+•	The Log Analysis Report now has a separate e-mail distribution list.  This will allow remote consultant to receive LoadMgr notification on SMS based devices   
+•	Warning notification messages can now be disabled.  When disabled, you will no longer receive e-mail messages for SAS Warnings.  
+•	LoadMgr 5.5 archives logs like its predecessors.  However, the backup directory is now time-stamped using its last update time.  This will help you find the correct log files when troubleshooting  
+•	LoadMgr 5.5 integrates a log parser utility to provide FULLSTIMER statistics for performance analyzing.  You need to set FULLSTIMER_PARSE=1 in .LoadMgr_profile to enable this function.  
 
 •	LoadMgr 5.5 will enforce the order of jobs defined in the configuration file.  
 
@@ -24,12 +23,12 @@ $LOADMGR/bin/controller.sh –d [testing_dir] [Package_name]
 
 •	LoadMgr 5.5 stops a package when it runs more than MAX_RUN_TIME, which is configurable in .LoadMgr profile.
 
-Features
-LoadMgr manages a list of SAS jobs and UNIX/Linux shell scripts as an overall process, the entire process is known as a package.  The following is a list of features supported by LoadMgr:
-•	Configuration data-driven process automation: 
-o	LoadMgr reads a configuration file that lists jobs and their predecessors,
-o	LoadMgr then executes the jobs according their dependencies and defined concurrency level.
-•	Status and Re-Startability: 
+Features  
+LoadMgr manages a list of SAS jobs and UNIX/Linux shell scripts as an overall process, the entire process is known as a package.  The following is a list of features supported by LoadMgr:  
+•	Configuration data-driven process automation:   
+o	LoadMgr reads a configuration file that lists jobs and their predecessors,  
+o	LoadMgr then executes the jobs according their dependencies and defined concurrency level.  
+•	Status and Re-Startability:   
 o	LoadMgr logs execution status and run time for each jobs as well as the entire process.  If the process failed on particular jobs, other independent jobs will run to their completion.  You can overwrite the default restart by issue –f at command line like:     controller.sh  -f sample
 o	When an entire process stops running due to a job failure, the application’s administrator will need to address the root cause of the job failure.  LoadMgr will resume the process at the point of failure with the same LoadMgr command. 
 •	Parameter Driven SAS Application: 
