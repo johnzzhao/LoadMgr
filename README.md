@@ -7,7 +7,7 @@ What’s New in Version 5.x
 LoadMgr 5.5 has significant enhancements as compared to previous releases of LoadMgr.  The following changes are included with LoadMgr 5.5:
 •	It is common that a LoadMgr process needs to finish within a time window to meeting SLA (Service Level Agreement).  Therefore, when a job fails, you may want to restart it while the process is still running.  In previous releases, you have to wait for the LoadMgr process to stop before resubmitting it.  LoadMgr 5.5 allows the Admin to re-run the failed process when it is running. 
 
-•	All Configuration files that define a LoadMgr package are now in a single configuration file.  The configuration file will have a .conf extension.  This replaces the .meta, .param, and .email files in LoadMgr 4.x.<\br>
+•	All Configuration files that define a LoadMgr package are now in a single configuration file.  The configuration file will have a .conf extension.  This replaces the .meta, .param, and .email files in LoadMgr 4.x.<br/>
 •	You can now use a SAS program more than once in a package.  Log file names will include the SAS program name plus the Task ID, which is unique in each package.  This way, you can simply define different parameter values for the same programs. 
 •	You can now use fully qualified SAS program names in a configuration (.conf) file.  This removes the requirement of having soft links to program directories, and allow you to have programs from different directories in the same configuration file.  You can still use soft links, if you wish.  You can override the default source code directory in your package configuration file.
 •	You can now use a “testing” area for dry runs of production programs.  Us the following syntax to use this feature:
